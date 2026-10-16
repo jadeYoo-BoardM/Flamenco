@@ -1,5 +1,5 @@
 // Flamenco offline cache. Bump VERSION whenever you upload changed files.
-const VERSION='flamenco-v1';
+const VERSION='flamenco-v3';
 const FILES=[
  "./",
  "index.html",
