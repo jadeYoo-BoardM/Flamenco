@@ -1,12 +1,12 @@
 // Flamenco offline cache. Bump VERSION whenever you upload changed files.
-const VERSION='flamenco-v4';
+const VERSION='flamenco-v5';
 const FILES=[
  "./",
  "index.html",
  "manifest.webmanifest",
- "icon-180.png",
- "icon-192.png",
- "icon-512.png",
+ "cat-icon-180.png",
+ "cat-icon-192.png",
+ "cat-icon-512.png",
  "back.webp",
  "box.webp",
  "castanets_1_0.webp",
@@ -66,11 +66,18 @@ const FILES=[
 ];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(VERSION).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==VERSION).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
+// Card art never changes: serve it from the cache first.
+// Everything else (page, manifest, icons, fonts): try the network first so updates show up, fall back to the cache offline.
+const CARD=/\/(rose|comb|castanets|fan|guitar)_\d_\d\.webp$|\/back\.webp$/;
 self.addEventListener('fetch',e=>{
   const req=e.request; if(req.method!=='GET')return;
-  e.respondWith(caches.match(req,{ignoreSearch:true}).then(hit=>hit||fetch(req).then(res=>{
-    // keep Google Fonts and anything else fetched once, so it works offline next time
-    if(res&&(res.ok||res.type==='opaque')){const copy=res.clone();caches.open(VERSION).then(c=>c.put(req,copy))}
+  const url=new URL(req.url);
+  if(CARD.test(url.pathname)){
+    e.respondWith(caches.match(req,{ignoreSearch:true}).then(hit=>hit||fetch(req).then(res=>{if(res.ok){const c=res.clone();caches.open(VERSION).then(x=>x.put(req,c))}return res})));
+    return;
+  }
+  e.respondWith(fetch(req).then(res=>{
+    if(res&&(res.ok||res.type==='opaque')){const c=res.clone();caches.open(VERSION).then(x=>x.put(req,c))}
     return res;
-  }).catch(()=>caches.match('index.html'))));
+  }).catch(()=>caches.match(req,{ignoreSearch:true}).then(hit=>hit||(req.mode==='navigate'?caches.match('index.html'):undefined))));
 });
