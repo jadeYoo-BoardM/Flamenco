@@ -1,9 +1,9 @@
 // Flamenco offline cache. Bump VERSION whenever you upload changed files.
-const VERSION='flamenco-v5';
+const VERSION='flamenco-v6';
 const FILES=[
  "./",
  "index.html",
- "manifest.webmanifest",
+ "app-cat.webmanifest",
  "cat-icon-180.png",
  "cat-icon-192.png",
  "cat-icon-512.png",
