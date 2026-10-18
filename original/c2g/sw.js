@@ -1,6 +1,6 @@
 // 오프라인 실행용 서비스워커 — 한 번 온라인에서 열면 이후 비행기 모드에서도 실행됩니다.
 // 게임 파일을 수정해서 다시 올렸다면 아래 버전 숫자를 올리면 확실히 갱신됩니다.
-const CACHE = 'cradle-to-grave-v2';
+const CACHE = 'cradle-to-grave-v3';
 const CORE = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png', ...[]];
 const FONT_CSS = ["https://fonts.googleapis.com/css2?family=Jua&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap"];
 const FONT_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com'];
