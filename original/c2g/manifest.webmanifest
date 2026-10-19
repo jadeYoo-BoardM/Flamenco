@@ -1,0 +1,22 @@
+{
+ "name": "요람에서 무덤까지 2 · CRADLE 2 GRAVE",
+ "short_name": "C2G",
+ "lang": "ko",
+ "start_url": "./",
+ "scope": "./",
+ "display": "standalone",
+ "background_color": "#eef9f7",
+ "theme_color": "#2c7d75",
+ "icons": [
+  {
+   "src": "icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  }
+ ]
+}
