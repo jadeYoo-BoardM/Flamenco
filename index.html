@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ko"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>보드게임 앱 모음</title>
+<style>
+:root{color-scheme:light dark;--bg:#f6f7f9;--ink:#1b2230;--muted:#6a7488;--card:#fff;--line:#e1e5ec;--accent:#2c7d75}
+@media (prefers-color-scheme:dark){:root{--bg:#141a26;--ink:#eef1f7;--muted:#98a3b8;--card:#1d2536;--line:#2b3550;--accent:#62c7bd}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  padding:max(24px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+main{max-width:560px;margin:0 auto}
+h1{font-size:24px;margin:8px 0 4px}
+p{margin:0 0 20px;color:var(--muted);font-size:14px}
+.list{display:grid;gap:10px}
+.card{display:flex;flex-direction:column;gap:2px;padding:16px 18px;background:var(--card);border:1px solid var(--line);border-radius:14px;text-decoration:none;color:inherit}
+.card:active{border-color:var(--accent)}
+.card b{font-size:18px}
+.card span{font-size:13px;color:var(--muted)}
+</style></head>
+<body><main>
+  <h1>보드게임 앱 모음</h1>
+  <p>게임을 열고 공유 버튼 → ‘홈 화면에 추가’를 누르면 앱처럼 설치됩니다. 게임마다 따로 설치하세요.</p>
+  <div class="list">
+    <a class="card" href="./flamenco/"><b>Flamenco 플라멩코</b><span>플라멩코</span></a>
+    <a class="card" href="./cradle-to-grave/"><b>요람에서 무덤까지</b><span>카드 게임</span></a>
+    <a class="card" href="./astarea/"><b>아스타레아 솔로</b><span>1인 플레이</span></a>
+    <a class="card" href="./atrah/"><b>아트라 ATRAH</b><span>낚시 카드 게임</span></a>
+    <a class="card" href="./shajarat/"><b>샤자라트 솔로</b><span>1인 플레이</span></a>
+  </div>
+</main></body></html>
