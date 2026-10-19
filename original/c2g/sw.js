@@ -1,60 +1,15 @@
-// 오프라인 실행용 서비스워커 — 한 번 온라인에서 열면 이후 비행기 모드에서도 실행됩니다.
-// 게임 파일을 수정해서 다시 올렸다면 아래 버전 숫자를 올리면 확실히 갱신됩니다.
-const CACHE = 'cradle-to-grave-v4';
-const CORE = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png', ...[]];
-const FONT_CSS = ["https://fonts.googleapis.com/css2?family=Jua&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap"];
-const FONT_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com'];
-
-self.addEventListener('install', (e) => {
-  self.skipWaiting();
-  e.waitUntil((async () => {
-    const cache = await caches.open(CACHE);
-    await cache.addAll(CORE);
-    // 글꼴은 실패해도 설치를 막지 않도록 따로 처리
-    for (const cssUrl of FONT_CSS) {
-      try {
-        const res = await fetch(cssUrl);
-        if (!res.ok) continue;
-        await cache.put(cssUrl, res.clone());
-        const css = await res.text();
-        const files = [...new Set([...css.matchAll(/url\((https:[^)]+)\)/g)].map((m) => m[1]))];
-        await Promise.all(files.map(async (f) => {
-          try { const r = await fetch(f); if (r.ok) await cache.put(f, r); } catch (_) {}
-        }));
-      } catch (_) {}
-    }
-  })());
-});
-
-self.addEventListener('activate', (e) => {
-  e.waitUntil((async () => {
-    const prefix = CACHE.replace(/-v\d+$/, '-v');
-    for (const k of await caches.keys()) if (k.startsWith(prefix) && k !== CACHE) await caches.delete(k);
-    await self.clients.claim();
-  })());
-});
-
-self.addEventListener('fetch', (e) => {
-  const req = e.request;
-  if (req.method !== 'GET') return;
-  const url = new URL(req.url);
-  const sameOrigin = url.origin === self.location.origin;
-  if (!sameOrigin && !FONT_HOSTS.includes(url.hostname)) return;
-
-  e.respondWith((async () => {
-    const cache = await caches.open(CACHE);
-    const hit = await cache.match(req, { ignoreSearch: sameOrigin });
-    const refresh = fetch(req).then((res) => {
-      if (res && (res.ok || res.type === 'opaque')) cache.put(req, res.clone());
-      return res;
-    }).catch(() => null);
-    if (hit) { e.waitUntil(refresh); return hit; }          // 캐시 우선, 뒤에서 조용히 갱신
-    const res = await refresh;
-    if (res) return res;
-    if (req.mode === 'navigate') {
-      const fallback = await cache.match('./index.html');
-      if (fallback) return fallback;
-    }
-    return new Response('오프라인 상태입니다.', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
-  })());
-});
+// Offline cache for CRADLE 2 GRAVE. The version changes whenever index.html changes.
+const CACHE="c2g-d136dd499f";
+const FILES=["./","index.html","manifest.webmanifest","icon-180.png","icon-192.png","icon-512.png"];
+const FONT_CACHE="c2g-fonts-v1";
+const FONT_CSS=["https://fonts.googleapis.com/css2?family=Jua&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap"];
+self.addEventListener("install",e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting()))});
+self.addEventListener("activate",e=>{e.waitUntil((async()=>{for(const k of await caches.keys())if(k.startsWith("c2g-")&&k!==CACHE&&k!==FONT_CACHE)await caches.delete(k);await self.clients.claim();cacheFonts()})())});
+async function cacheFonts(){try{const c=await caches.open(FONT_CACHE);for(const u of FONT_CSS){let r=await c.match(u);if(!r){r=await fetch(u,{mode:"cors"});if(!r.ok)continue;await c.put(u,r.clone())}const css=await r.text();for(const m of css.matchAll(/url\((https:[^)]+)\)/g)){if(await c.match(m[1]))continue;try{const f=await fetch(m[1],{mode:"cors"});if(f.ok)await c.put(m[1],f)}catch(_){}}}}catch(_){}}
+self.addEventListener("fetch",e=>{const req=e.request;if(req.method!=="GET")return;const u=new URL(req.url);
+ if(u.hostname==="fonts.googleapis.com"||u.hostname==="fonts.gstatic.com"){e.respondWith(caches.open(FONT_CACHE).then(async c=>{const h=await c.match(req.url);if(h)return h;try{const r=await fetch(req.url,{mode:"cors"});if(r.ok)c.put(req.url,r.clone());return r}catch(_){return new Response("",{status:504})}}));return}
+ if(u.origin!==location.origin)return;
+ e.respondWith((async()=>{const c=await caches.open(CACHE);
+  // network first so an updated game shows up as soon as you're online; cache when offline
+  try{const r=await fetch(req);if(r.ok&&FILES.some(f=>u.pathname.endsWith(f.replace("./",""))))c.put(req,r.clone());return r}
+  catch(_){return (await c.match(req,{ignoreSearch:true}))||(await c.match("./"))||new Response("Offline",{status:503})}})())});
