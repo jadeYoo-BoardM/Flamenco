@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="슈퍼링크스">
+<meta name="theme-color" content="#eef2df">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" type="image/png" href="icon.png">
+<title>슈퍼링크스 AI 대전</title>
+<style>
+:root{
+  --bg:#eef2df; --panel:#fffdf6; --ink:#23425a; --sub:#5d7487; --blue:#2c6e98; --blue2:#1f5579;
+  --line:#dbe1c7; --cell:#d9e5bd; --cell2:#e9efd5; --orange:#e2782b; --gold:#f2b400;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif}
+body{min-height:100vh;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+button{font-family:inherit;cursor:pointer}
+
+/* header */
+header{display:flex;align-items:center;gap:10px;padding:10px 14px;max-width:1240px;margin:0 auto}
+.logo-t{font:italic 900 26px/1 Georgia,serif;letter-spacing:-.5px;
+  background:linear-gradient(180deg,#ffd76a,#e59a12 60%,#b86a06);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 1px 0 rgba(120,70,0,.35))}
+.sub-t{font-size:13px;color:var(--sub);font-weight:600}
+.spacer{flex:1}
+.turninfo{font-size:13px;font-weight:700;color:var(--blue2);background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 12px;white-space:nowrap}
+.hbtn{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;padding:8px 12px;font-size:14px;font-weight:700}
+
+/* layout */
+.game{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;padding:0 12px 16px;max-width:1240px;margin:0 auto}
+@media (min-width:880px){.game{grid-template-columns:minmax(0,1.2fr) minmax(330px,1fr);align-items:start}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px}
+.ptitle{font-size:12px;font-weight:800;color:#fff;background:var(--blue);display:inline-block;padding:4px 10px;border-radius:8px;margin-bottom:10px;letter-spacing:.3px}
+.side{display:flex;flex-direction:column;gap:12px}
+
+/* tabs */
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.tab{flex:1 1 0;min-width:0;border:2px solid var(--line);background:#fff;border-radius:12px;padding:6px 8px;text-align:left;color:var(--ink)}
+.tab .nm{font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:4px}
+.tab .sc{font-size:12px;color:var(--sub);margin-top:2px}
+.tab .sc b{color:#c98700;font-size:14px}
+.tab.on{border-color:var(--blue);background:#eaf3f9}
+.tab .dot{width:8px;height:8px;border-radius:50%;background:var(--orange);display:none;flex:none}
+.tab.cur .dot{display:inline-block;animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.25}}
+
+/* board */
+.board-wrap{width:100%;max-width:min(100%,calc(100vh - 210px));min-width:260px;margin:0 auto}
+.board{position:relative;width:100%;aspect-ratio:1/1;background:linear-gradient(160deg,#f6f8ea,#e7eed2);border-radius:4%;
+  container-type:inline-size;box-shadow:inset 0 0 0 1px #d4dcbc}
+.cell{position:absolute;width:20%;height:20%}
+.face{position:absolute;inset:5%;border-radius:12%;background:var(--cell);display:flex;align-items:center;justify-content:center;
+  box-shadow:inset 0 -2px 0 rgba(0,0,0,.06)}
+.sym{font-size:9cqw;line-height:1;filter:saturate(.75);opacity:.9}
+.face.logo{background:linear-gradient(135deg,#a9c47a,#86a85a)}
+.face.logo span{font:italic 900 3.3cqw/1 Georgia,serif;color:#ffd24d;text-shadow:0 1px 0 #8a5300;transform:rotate(-8deg)}
+.cell.tap{cursor:pointer}
+.cell.tap:active .face{background:#c8dba0}
+.cell.pvc .face{background:#fde7c8}
+.cell.gsel .card{box-shadow:0 0 0 2px #fff,0 0 0 4.5px var(--orange),0 2px 6px rgba(0,0,0,.25)}
+.lnk.pvl{opacity:.85;box-shadow:0 0 0 2px var(--orange)}
+.gopts{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.gopt{display:flex;align-items:center;gap:8px;text-align:left;border:2px solid var(--line);background:#fff;border-radius:10px;padding:8px 10px;font-size:13.5px;color:var(--ink);font-weight:600}
+.gopt.on{border-color:var(--orange);background:#fff6e5}
+.gopt .rd{width:16px;height:16px;border-radius:50%;border:2px solid #c4ccb0;flex:none}
+.gopt.on .rd{border-color:var(--orange);background:radial-gradient(var(--orange) 45%,transparent 50%)}
+.gopt .gs{margin-left:auto;font-weight:900;color:#b97200;white-space:nowrap}
+.glabel{font-size:12px;font-weight:800;color:var(--sub);margin:2px 0 6px}
+.lnk{position:absolute;width:6.4cqw;height:6.4cqw;transform:translate(-50%,-50%) rotate(45deg);background:#fff;border-radius:22%;
+  box-shadow:0 1px 3px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;z-index:3;pointer-events:none}
+.lnk svg{width:88%;height:88%;transform:rotate(-45deg)}
+.lnk.new{animation:starIn .55s ease-out}
+@keyframes starIn{0%{transform:translate(-50%,-50%) rotate(45deg) scale(0)}70%{transform:translate(-50%,-50%) rotate(45deg) scale(1.35)}100%{transform:translate(-50%,-50%) rotate(45deg) scale(1)}}
+
+/* cards */
+.card{position:absolute;inset:4%;border-radius:10%;background:var(--cc);container-type:inline-size;
+  box-shadow:0 2px 4px rgba(0,0,0,.18),inset 0 0 0 1px rgba(0,0,0,.05)}
+.card .dia{position:absolute;left:20%;top:20%;width:60%;height:60%;background:#f6f6f2;border-radius:12%;transform:rotate(45deg);
+  box-shadow:0 1px 1px rgba(0,0,0,.08)}
+.card .num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:italic 700 44cqw/1 Georgia,"Times New Roman",serif;color:#2c2c2c}
+.card .ci{position:absolute;right:5%;bottom:3%;font-size:17cqw;line-height:1;opacity:.8}
+.card.pv{outline:3px dashed var(--orange);outline-offset:-1px;filter:brightness(1.04)}
+.card.last{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--gold),0 2px 6px rgba(0,0,0,.25)}
+.card.pop{animation:pop .35s ease-out}
+@keyframes pop{0%{transform:scale(.4);opacity:0}100%{transform:scale(1);opacity:1}}
+.card.back{background:linear-gradient(135deg,#dfeac2,#b7cd8a);display:flex;align-items:center;justify-content:center}
+.card.back span{font:italic 900 17cqw/1 Georgia,serif;color:#e8a417;text-shadow:0 1px 0 #7a4b00;transform:rotate(-10deg)}
+
+/* market */
+.market{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.slot{position:relative;width:74px;height:74px;border-radius:12px;border:2px dashed #cfd7b6;background:transparent;padding:0}
+.slot .card{inset:0}
+.slot.sel{transform:translateY(-6px)}
+.slot.sel .card{box-shadow:0 0 0 3px #fff,0 0 0 6px var(--orange),0 6px 10px rgba(0,0,0,.2)}
+.slot.dis{cursor:default}
+.deckcnt{position:absolute;left:0;right:0;bottom:-20px;text-align:center;font-size:11px;color:var(--sub);font-weight:700}
+.mdiv{width:1px;align-self:stretch;background:var(--line);margin:0 2px}
+.mlabel{font-size:11px;color:var(--sub);font-weight:700;margin-bottom:4px}
+
+/* action */
+.inst{font-size:14px;line-height:1.5;margin:0 0 10px}
+.inst b{color:var(--blue2)}
+.hand{display:flex;gap:10px;margin:6px 0 12px}
+.hand .slot{border:0}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.btn{background:var(--blue);color:#fff;border:0;border-radius:11px;padding:11px 16px;font-size:15px;font-weight:800}
+.btn:active{background:var(--blue2)}
+.btn.ghost{background:#e6edd5;color:var(--ink)}
+.btn.orange{background:var(--orange)}
+.btn:disabled{opacity:.4;cursor:default}
+.est{background:#fff6e5;border:1px solid #f3d9a8;border-radius:10px;padding:8px 10px;font-size:13px;margin-bottom:10px;line-height:1.55}
+.est b{color:#b97200}
+.thinking{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--sub)}
+.spin{width:16px;height:16px;border:3px solid #cfd9e2;border-top-color:var(--blue);border-radius:50%;animation:sp 0.8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* supply */
+.supply{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.scol{display:flex;flex-direction:column;gap:5px;align-items:center}
+.tok{width:100%;border-radius:9px;padding:5px 2px;text-align:center;font-size:13px;font-weight:800;color:#7a4f00;background:var(--cc);
+  position:relative;min-height:38px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.tok .ow{font-size:10px;color:#333;font-weight:700;opacity:.85;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tok.taken{opacity:.42;filter:grayscale(.4)}
+.tok.taken::after{content:"";position:absolute;inset:0;border-radius:9px;background:repeating-linear-gradient(-45deg,transparent 0 6px,rgba(255,255,255,.35) 6px 9px)}
+.scname{font-size:11px;font-weight:700;color:var(--sub)}
+.endtok{margin-top:10px;font-size:12px;color:var(--sub);line-height:1.5}
+
+/* log */
+.log{max-height:190px;overflow:auto;font-size:12.5px;line-height:1.55;-webkit-user-select:text;user-select:text}
+.log div{padding:3px 0;border-bottom:1px dashed #e6ead8}
+.log div:first-child{font-weight:700}
+
+/* toast */
+.toasts{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 64px);transform:translateX(-50%);z-index:50;display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none}
+.toast{background:rgba(31,85,121,.95);color:#fff;font-weight:800;font-size:15px;padding:10px 16px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.2);animation:tin .3s ease-out}
+.toast .st{color:#ffd24d}
+@keyframes tin{from{transform:translateY(-10px);opacity:0}}
+
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(25,40,50,.45);z-index:40;display:flex;align-items:center;justify-content:center;padding:16px}
+.mbox{background:var(--panel);border-radius:18px;max-width:560px;width:100%;max-height:calc(100vh - 32px);overflow:auto;padding:20px;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.mbox h2{margin:0 0 4px;font-size:20px}
+.mbox h3{font-size:15px;margin:16px 0 6px;color:var(--blue2)}
+.mbox p,.mbox li{font-size:14px;line-height:1.6}
+.mbox ul,.mbox ol{padding-left:20px;margin:4px 0}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{flex:1;border:2px solid var(--line);background:#fff;border-radius:10px;padding:10px 6px;font-size:14px;font-weight:700;color:var(--ink)}
+.seg button.on{border-color:var(--blue);background:#eaf3f9;color:var(--blue2)}
+.field{margin:14px 0}
+.field label{display:block;font-size:13px;font-weight:800;margin-bottom:6px;color:var(--sub)}
+.field input{width:100%;font-size:16px;padding:10px 12px;border:2px solid var(--line);border-radius:10px;font-family:inherit;-webkit-user-select:text;user-select:text}
+.hero{text-align:center;margin-bottom:6px}
+.hero .logo-t{font-size:44px}
+.res{width:100%;border-collapse:collapse;font-size:13.5px;margin:10px 0}
+.res th,.res td{padding:7px 5px;text-align:center;border-bottom:1px solid var(--line)}
+.res th{font-size:12px;color:var(--sub)}
+.res td.nm{text-align:left;font-weight:800}
+.res tr.win td{background:#fff4d6}
+.res .tot{font-weight:900;color:#b97200;font-size:16px}
+.big-star{display:inline-block;width:16px;height:16px;vertical-align:-2px}
+.note{font-size:12px;color:var(--sub);line-height:1.5}
+@media (max-width:560px){
+  header{flex-wrap:wrap;gap:6px;padding:8px 12px}
+  header .sub-t{display:none}
+  .logo-t{font-size:22px}
+  .hbtn{padding:6px 10px;font-size:13px}
+  .turninfo{font-size:12px;padding:5px 10px}
+  .slot{width:60px;height:60px}
+  .market{gap:8px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo-t">Superlinks</div>
+  <div class="sub-t">슈퍼링크스 · AI 대전</div>
+  <div class="spacer"></div>
+  <div class="turninfo" id="turninfo">-</div>
+  <button class="hbtn" data-act="rules">규칙</button>
+  <button class="hbtn" data-act="setup">새 게임</button>
+</header>
+<main class="game" id="game">
+  <section class="panel">
+    <div class="tabs" id="tabs"></div>
+    <div class="board-wrap" id="boardwrap"></div>
+  </section>
+  <section class="side">
+    <div class="panel">
+      <div class="ptitle">카드</div>
+      <div id="market"></div>
+    </div>
+    <div class="panel" id="action"></div>
+    <div class="panel">
+      <div class="ptitle">색 영역 토큰</div>
+      <div id="supply"></div>
+    </div>
+    <div class="panel">
+      <div class="ptitle">기록</div>
+      <div class="log" id="log"></div>
+    </div>
+  </section>
+</main>
+<div class="toasts" id="toasts"></div>
+<div id="modal"></div>
+
+<script>
+'use strict';
+/* =========================================================
+   데이터
+   ========================================================= */
+const SYMS = {
+  ladybug:['🐞','무당벌레'], butterfly:['🦋','나비'], leaf:['🍃','나뭇잎'], clover:['🍀','클로버'],
+  sun:['☀️','해'], mushroom:['🍄','버섯'], grass:['🌱','풀'], cherry:['🍒','체리'],
+  cloud:['☁️','구름'], snail:['🐌','달팽이'], tree:['🌲','나무'], bolt:['⚡','번개']
+};
+const L = null; // 가운데 로고 칸
+const BOARDS = {
+  A:['ladybug','butterfly','leaf','grass','leaf',
+     'clover','sun','mushroom','butterfly','clover',
+     'grass','cherry',L,'cherry','cloud',
+     'cloud','snail','ladybug','tree','mushroom',
+     'tree','bolt','snail','sun','bolt'],
+  B:['cloud','butterfly','bolt','cloud','cherry',
+     'cherry','snail','tree','bolt','leaf',
+     'leaf','grass',L,'grass','snail',
+     'sun','mushroom','sun','butterfly','ladybug',
+     'clover','ladybug','tree','mushroom','clover'],
+  C:['cherry','sun','cloud','clover','cloud',
+     'leaf','tree','mushroom','sun','leaf',
+     'clover','ladybug',L,'ladybug','bolt',
+     'bolt','butterfly','cherry','snail','mushroom',
+     'snail','grass','butterfly','tree','grass'],
+  D:['mushroom','leaf','cloud','mushroom','tree',
+     'tree','clover','cherry','cloud','snail',
+     'snail','butterfly',L,'butterfly','clover',
+     'ladybug','sun','ladybug','leaf','bolt',
+     'grass','bolt','cherry','sun','grass']
+};
+const COLORS = [
+  {name:'분홍', bg:'#f4b3aa', icon:'🌸', hint:'꽃'},
+  {name:'보라', bg:'#b8a3df', icon:'🍇', hint:'포도'},
+  {name:'파랑', bg:'#9ecce2', icon:'💧', hint:'물방울'},
+  {name:'노랑', bg:'#f9d36d', icon:'🌙', hint:'달'}
+];
+const LEVELS = {
+  easy:  {name:'쉬움',  potW:0.15, noise:1.6},
+  normal:{name:'보통',  potW:0.75, noise:0.45},
+  hard:  {name:'어려움', potW:1.0,  noise:0}
+};
+const TURNS = 12, CENTER = 12;
+const NB = [...Array(25)].map((_,i)=>{
+  const r=(i/5)|0, c=i%5, a=[];
+  if(r>0)a.push(i-5); if(r<4)a.push(i+5); if(c>0)a.push(i-1); if(c<4)a.push(i+1);
+  return a.filter(x=>x!==CENTER);
+});
+const PARTNER = {};
+for(const id in BOARDS){
+  const b=BOARDS[id]; PARTNER[id]=Array(25).fill(-1);
+  b.forEach((s,i)=>{ if(s) PARTNER[id][i]=b.findIndex((t,k)=>t===s&&k!==i); });
+}
+
+/* =========================================================
+   규칙 엔진 (순수 함수)
+   ========================================================= */
+function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];} return a; }
+function isSquare(cells){
+  if(cells.length!==4) return false;
+  const rs=cells.map(i=>(i/5)|0), cs=cells.map(i=>i%5);
+  const R=new Set(rs), C=new Set(cs);
+  return R.size===2 && C.size===2 && Math.max(...rs)-Math.min(...rs)===1 && Math.max(...cs)-Math.min(...cs)===1;
+}
+function groupStars(cells,val){ return val===2?1 : val===3?2 : (isSquare(cells)?4:3); }
+function edgesFor(cells){
+  const set=new Set(cells), edges=[];
+  if(isSquare(cells)){
+    for(const a of cells) for(const b of NB[a]) if(set.has(b)&&a<b) edges.push([a,b]);
+    return edges;
+  }
+  const seen=new Set([cells[0]]), q=[cells[0]];
+  while(q.length){ const x=q.shift(); for(const y of NB[x]) if(set.has(y)&&!seen.has(y)){ seen.add(y); edges.push([x,y]); q.push(y);} }
+  return edges;
+}
+// start 칸을 포함하는, 그룹에 속하지 않은 같은 숫자 카드의 연결 집합(크기 = 숫자) 전부
+function enumGroups(B,start){
+  const val=B.v[start], out=[], seen=new Set();
+  const ok=x=>B.c[x]>=0 && B.g[x]<0 && B.v[x]===val;
+  (function rec(set){
+    if(set.length===val){ const k=set.slice().sort((a,b)=>a-b), key=k.join(','); if(!seen.has(key)){seen.add(key);out.push(k);} return; }
+    for(const x of set) for(const y of NB[x]) if(ok(y)&&!set.includes(y)) rec(set.concat(y));
+  })([start]);
+  return out;
+}
+function leftoverScore(B,list){
+  const used=new Set(); list.forEach(g=>g.cells.forEach(x=>used.add(x)));
+  const vals=new Set(list.map(g=>g.val)); let s=0;
+  for(let i=0;i<25;i++) if(B.c[i]>=0&&B.g[i]<0&&!used.has(i)&&vals.has(B.v[i]))
+    for(const y of NB[i]) if(B.c[y]<0) s++;
+  return s;
+}
+// 이번에 놓은 카드로 만들 수 있는 그룹 중 별이 가장 많은 조합
+function bestGrouping(B,newCells){
+  const cands=[], keys=new Set();
+  for(const n of newCells){
+    if(B.c[n]<0||B.g[n]>=0) continue;
+    for(const s of enumGroups(B,n)){ const k=s.join(','); if(keys.has(k)) continue; keys.add(k);
+      cands.push({cells:s,val:B.v[n],stars:groupStars(s,B.v[n])}); }
+  }
+  let best={list:[],stars:0,tb:-1};
+  const consider=list=>{
+    const st=list.reduce((a,x)=>a+x.stars,0); if(st<best.stars) return;
+    const tb=leftoverScore(B,list);
+    if(st>best.stars||tb>best.tb) best={list,stars:st,tb};
+  };
+  for(let a=0;a<cands.length;a++){
+    consider([cands[a]]);
+    for(let b=a+1;b<cands.length;b++)
+      if(!cands[a].cells.some(x=>cands[b].cells.includes(x))) consider([cands[a],cands[b]]);
+  }
+  return best;
+}
+// 플레이어가 고를 수 있는 그룹 조합 전부 (더 이상 그룹을 추가할 수 없는 조합만)
+function groupCands(B,newCells){
+  const cands=[], keys=new Set();
+  for(const n of newCells){
+    if(B.c[n]<0||B.g[n]>=0) continue;
+    for(const s of enumGroups(B,n)){ const k=s.join(','); if(keys.has(k)) continue; keys.add(k);
+      cands.push({cells:s,val:B.v[n],stars:groupStars(s,B.v[n])}); }
+  }
+  return cands;
+}
+function allGroupings(B,newCells){
+  const cands=groupCands(B,newCells), out=[];
+  const disj=(x,y)=>!x.cells.some(c=>y.cells.includes(c));
+  const lists=[[]];
+  for(let a=0;a<cands.length;a++){ lists.push([cands[a]]);
+    for(let b=a+1;b<cands.length;b++) if(disj(cands[a],cands[b])) lists.push([cands[a],cands[b]]); }
+  for(const list of lists){
+    if(cands.some(c=>!list.includes(c)&&list.every(x=>disj(x,c)))) continue; // 더 추가할 수 있으면 제외
+    out.push({list,stars:list.reduce((a,x)=>a+x.stars,0),tb:leftoverScore(B,list)});
+  }
+  out.sort((x,y)=>y.stars-x.stars||y.tb-x.tb);
+  return out;
+}
+function colorComps(B){
+  const seen=new Array(25).fill(false), out=[];
+  for(let i=0;i<25;i++){
+    if(B.c[i]<0||seen[i]) continue;
+    const col=B.c[i], cells=[], st=[i]; seen[i]=true;
+    while(st.length){ const x=st.pop(); cells.push(x); for(const y of NB[x]) if(!seen[y]&&B.c[y]===col){seen[y]=true;st.push(y);} }
+    out.push({col,cells});
+  }
+  return out;
+}
+function largestArea(B){ let m=0; for(const c of colorComps(B)) m=Math.max(m,c.cells.length); return m; }
+// B = {c,v,g,claimed,ng} 를 직접 변경. avail[색] = 남은 토큰 값 배열(높은 순)
+function simulateTurn(B,place,avail,choice){
+  for(const [i,cd] of place){ B.c[i]=cd.c; B.v[i]=cd.v; }
+  const gr=choice||bestGrouping(B,place.map(x=>x[0]));
+  gr.list.forEach(gp=>{ const id=B.ng++; gp.cells.forEach(x=>B.g[x]=id); });
+  const gains=[], comps=colorComps(B);
+  for(let k=0;k<4;k++){
+    if(B.claimed[k]||!avail[k].length) continue;
+    if(comps.some(cp=>cp.col===k&&cp.cells.length>=5)){ gains.push({col:k,val:avail[k][0]}); B.claimed[k]=avail[k][0]; }
+  }
+  return {gr,gains,gain:gr.stars+gains.reduce((a,x)=>a+x.val,0)};
+}
+function cloneB(p){ return {c:p.c.slice(),v:p.v.slice(),g:p.g.slice(),claimed:p.claimed.slice(),ng:p.ng}; }
+
+/* =========================================================
+   AI
+   ========================================================= */
+const POT_STAR={2:1,3:2,4:3.4};
+function emptyNb(B,cells){ const st=new Set(); for(const x of cells) for(const y of NB[x]) if(B.c[y]<0) st.add(y); return st.size; }
+function potential(B,avail,ctx){
+  const tl=ctx.turnsLeft; let s=0;
+  const comps=colorComps(B);
+  if(tl>0){
+    for(let k=0;k<4;k++){
+      if(B.claimed[k]||!avail[k].length) continue;
+      let best=0;
+      for(const cp of comps){ if(cp.col!==k) continue;
+        const sz=cp.cells.length, g=emptyNb(B,cp.cells), need=5-sz;
+        if(need<=0||g===0||need>tl*2) continue;
+        const w=[0,0.1,0.22,0.4,0.62][sz]||0;
+        const v=avail[k][0]*w*Math.min(1,g/need)*(need<=tl?1:0.6);
+        if(v>best) best=v;
+      }
+      s+=best;
+    }
+    const seen=new Array(25).fill(false);
+    for(let i=0;i<25;i++){
+      if(B.c[i]<0||B.g[i]>=0||seen[i]) continue;
+      const val=B.v[i], comp=[], st=[i]; seen[i]=true;
+      while(st.length){ const x=st.pop(); comp.push(x); for(const y of NB[x]) if(!seen[y]&&B.c[y]>=0&&B.g[y]<0&&B.v[y]===val){seen[y]=true;st.push(y);} }
+      const k=comp.length; if(k>=val) continue;
+      const e=emptyNb(B,comp), need=val-k; if(e===0||need>tl*2) continue;
+      s+=POT_STAR[val]*Math.pow(k/val,1.3)*0.55*Math.min(1,e/need);
+    }
+  }
+  let my=0; for(const c of comps) my=Math.max(my,c.cells.length);
+  const endW=0.35+0.65*ctx.progress;
+  s+=3*Math.max(0,Math.min(1,0.5+0.08*(my-ctx.oppMax)))*endW;
+  return s;
+}
+function bestPlacement(p,cards,ctx,potW,noise){
+  let best=null; const part=PARTNER[p.board];
+  for(let i=0;i<25;i++){
+    const j=part[i]; if(j<0||i>j||p.c[i]>=0) continue;
+    for(const sw of [0,1]){
+      const a=sw?cards[1]:cards[0], b=sw?cards[0]:cards[1];
+      if(sw&&a.c===b.c&&a.v===b.v) continue;
+      const B=cloneB(p); const r=simulateTurn(B,[[i,a],[j,b]],ctx.avail);
+      const val=r.gain+potW*potential(B,ctx.avail,ctx);
+      const pick=val+(noise?noise*(Math.random()*2-1):0);
+      if(!best||pick>best.pick) best={pick,val,i,j,a,b,gain:r.gain};
+    }
+  }
+  return best;
+}
+function makeCtx(G,pi){
+  const p=G.players[pi];
+  const avail=G.supply.map(arr=>arr.filter(t=>t.owner<0).map(t=>t.val));
+  let oppMax=0; G.players.forEach((q,k)=>{ if(k!==pi) oppMax=Math.max(oppMax,largestArea(q)); });
+  return {avail,oppMax,turnsLeft:TURNS-p.done-1,progress:(p.done+1)/TURNS};
+}
+function unseenCounts(G){
+  const cnt=new Array(12).fill(9);
+  const sub=(c,v)=>{cnt[c*3+v-2]--;};
+  G.players.forEach(p=>{ for(let i=0;i<25;i++) if(p.c[i]>=0) sub(p.c[i],p.v[i]); });
+  G.faceUp.forEach(cd=>{ if(cd) sub(cd.c,cd.v); });
+  G.hand.forEach(cd=>sub(cd.c,cd.v));
+  return cnt;
+}
+function aiChooseDraw(G,pi){
+  const p=G.players[pi], lv=LEVELS[p.level], ctx=makeCtx(G,pi);
+  const fu=G.faceUp.map((cd,i)=>cd?i:-1).filter(i=>i>=0), opts=[];
+  for(let a=0;a<fu.length;a++) for(let b=a+1;b<fu.length;b++){
+    const v=bestPlacement(p,[G.faceUp[fu[a]],G.faceUp[fu[b]]],ctx,lv.potW,0).val;
+    opts.push({face:[fu[a],fu[b]],deck:false,val:v});
+  }
+  if(G.deck.length){
+    const cnt=unseenCounts(G), tot=cnt.reduce((a,b)=>a+b,0);
+    for(const a of fu){
+      let ev=0;
+      for(let t=0;t<12;t++){ if(!cnt[t]) continue;
+        ev+=cnt[t]/tot*bestPlacement(p,[G.faceUp[a],{c:(t/3)|0,v:t%3+2}],ctx,lv.potW,0).val; }
+      opts.push({face:[a],deck:true,val:ev});
+    }
+  }
+  let best=null;
+  for(const o of opts){ const pk=o.val+(lv.noise?lv.noise*(Math.random()*2-1):0); if(!best||pk>best.pk) best={...o,pk}; }
+  return best;
+}
+
+/* =========================================================
+   게임 상태
+   ========================================================= */
+function newGameState(opts){
+  const deck=[]; let id=0;
+  for(let c=0;c<4;c++) for(let v=2;v<=4;v++) for(let k=0;k<9;k++) deck.push({c,v,id:id++});
+  shuffle(deck);
+  const boards=shuffle(['A','B','C','D']);
+  const aiNames=['AI 1','AI 2','AI 3'];
+  const players=[];
+  for(let i=0;i<opts.n;i++){
+    players.push({name:i===0?(opts.name||'나'):aiNames[i-1], ai:i!==0, level:opts.level, board:boards[i],
+      c:Array(25).fill(-1), v:Array(25).fill(0), g:Array(25).fill(-1), claimed:[0,0,0,0], ng:0, groups:[], done:0, endToken:0});
+  }
+  const G={players, deck, faceUp:[deck.pop(),deck.pop(),deck.pop()],
+    supply:[0,1,2,3].map(()=>[{val:2,owner:-1},{val:1,owner:-1}]),
+    cur:(Math.random()*opts.n)|0, phase:'draw', hand:[], last:null, log:[], over:false, result:null, level:opts.level};
+  G.start=G.cur;
+  return G;
+}
+function cardName(cd){ return `${COLORS[cd.c].icon}${cd.v}`; }
+function addLog(G,msg){ G.log.unshift(msg); if(G.log.length>80) G.log.pop(); }
+function takeCards(G,sel){
+  const cards=sel.face.map(i=>G.faceUp[i]);
+  sel.face.forEach(i=>G.faceUp[i]=null);
+  if(sel.deck) cards.push(G.deck.pop());
+  G.hand=cards; G.phase='place';
+  return cards;
+}
+function refill(G){ for(let i=0;i<3;i++) if(!G.faceUp[i]&&G.deck.length) G.faceUp[i]=G.deck.pop(); }
+function commit(G,pi,a,ca,b,cb,choice){
+  const p=G.players[pi];
+  const avail=G.supply.map(arr=>arr.filter(t=>t.owner<0).map(t=>t.val));
+  const r=simulateTurn(p,[[a,ca],[b,cb]],avail,choice);
+  const turnNo=p.done+1;
+  r.gr.list.forEach(gp=>p.groups.push({cells:gp.cells,edges:edgesFor(gp.cells),stars:gp.stars,val:gp.val,t:turnNo}));
+  r.gains.forEach(x=>{ const t=G.supply[x.col].find(t=>t.owner<0); t.owner=pi; });
+  p.done++;
+  G.last={p:pi,cells:[a,b],t:turnNo};
+  G.hand=[];
+  const sym=SYMS[BOARDS[p.board][a]][1];
+  let msg=`${p.name}: ${cardName(ca)}·${cardName(cb)} → ${sym} 칸`;
+  const parts=[];
+  r.gr.list.forEach(gp=>parts.push(`${gp.val} ${gp.cells.length}장${gp.stars===4?'(정사각형)':''} ★${gp.stars}`));
+  r.gains.forEach(x=>parts.push(`${COLORS[x.col].name} 색 영역 ★${x.val}`));
+  if(parts.length) msg+=' — '+parts.join(', ');
+  addLog(G,msg);
+  return r;
+}
+function scoreOf(p){
+  const gs=p.groups.reduce((a,g)=>a+g.stars,0), as=p.claimed.reduce((a,b)=>a+b,0), es=p.endToken*3;
+  return {gs,as,es,total:gs+as+es};
+}
+function finishGame(G){
+  const areas=G.players.map(p=>colorComps(p).map(c=>c.cells.length).sort((a,b)=>b-a));
+  const maxA=Math.max(...areas.map(a=>a[0]||0));
+  G.players.forEach((p,i)=>{ p.endToken=((areas[i][0]||0)===maxA&&maxA>0)?1:0; });
+  const rows=G.players.map((p,i)=>({i,...scoreOf(p),areas:areas[i]}));
+  const cmp=(x,y)=>{ if(y.total!==x.total) return y.total-x.total;
+    const n=Math.max(x.areas.length,y.areas.length);
+    for(let k=0;k<n;k++){ const d=(y.areas[k]||0)-(x.areas[k]||0); if(d) return d; } return 0; };
+  rows.sort(cmp);
+  rows.forEach((r,k)=>{ r.rank=(k>0&&cmp(rows[k-1],r)===0)?rows[k-1].rank:k+1; });
+  G.over=true; G.phase='over'; G.result=rows;
+  const winners=rows.filter(r=>r.rank===1).map(r=>G.players[r.i].name);
+  G.players.forEach(p=>{ if(p.endToken) addLog(G,`${p.name}: 가장 큰 색 영역(${maxA}칸) — 게임 종료 토큰 ★3`); });
+  addLog(G,`게임 종료! 승리: ${winners.join(', ')}`);
+  return rows;
+}
+
+/* =========================================================
+   UI
+   ========================================================= */
+if(typeof document!=='undefined') (function(){
+const $=id=>document.getElementById(id);
+const SKEY='superlinks-ko-save-v1', OKEY='superlinks-ko-opts-v1';
+const SPEED={slow:1.5,normal:1,fast:0.45};
+let G=null, RUN=0, busy=false;
+let UI={view:0, sel:{face:[],deck:false}, pv:null, popCells:[], newEdges:new Set()};
+let OPTS={n:2,level:'normal',speed:'normal',name:'나'};
+try{ const o=JSON.parse(localStorage.getItem(OKEY)||'null'); if(o) OPTS={...OPTS,...o}; }catch(e){}
+
+const STAR=(()=>{ const pts=[]; for(let k=0;k<16;k++){ const r=k%2?4.3:10, a=-Math.PI/2+k*Math.PI/8; pts.push((r*Math.cos(a)).toFixed(2)+','+(r*Math.sin(a)).toFixed(2)); }
+  return `<svg viewBox="-11 -11 22 22"><polygon points="${pts.join(' ')}" fill="#ffcf1f" stroke="#e39b00" stroke-width="1.2" stroke-linejoin="round"/></svg>`; })();
+const SST=`<span class="big-star">${STAR}</span>`;
+
+function save(){ try{ if(G&&!G.over) localStorage.setItem(SKEY,JSON.stringify(G)); else localStorage.removeItem(SKEY);}catch(e){} }
+function loadSave(){ try{ const s=localStorage.getItem(SKEY); return s?JSON.parse(s):null; }catch(e){ return null; } }
+function saveOpts(){ try{ localStorage.setItem(OKEY,JSON.stringify(OPTS)); }catch(e){} }
+const wait=ms=>new Promise(r=>setTimeout(r,ms*(SPEED[OPTS.speed]||1)));
+const me=()=>G.players[0];
+const isHumanTurn=()=>G&&!G.over&&!G.players[G.cur].ai;
+
+function cardHTML(cd,extra=''){
+  return `<div class="card ${extra}" style="--cc:${COLORS[cd.c].bg}"><div class="dia"></div><div class="num">${cd.v}</div><div class="ci">${COLORS[cd.c].icon}</div></div>`;
+}
+function backHTML(){ return `<div class="card back"><span>Superlinks</span></div>`; }
+
+function render(){
+  if(!G) return;
+  // header
+  const p=G.players[G.cur];
+  $('turninfo').textContent = G.over ? '게임 종료' :
+    `${p.name} 차례 · ${p.done+1}/${TURNS}턴`;
+  // tabs
+  $('tabs').innerHTML=G.players.map((q,i)=>{
+    const s=scoreOf(q);
+    return `<button class="tab ${UI.view===i?'on':''} ${(!G.over&&G.cur===i)?'cur':''}" data-act="view" data-i="${i}">
+      <div class="nm"><span class="dot"></span>${esc(q.name)}${q.ai?` <span style="font-weight:600;color:var(--sub);font-size:11px">${LEVELS[q.level].name}</span>`:''}</div>
+      <div class="sc"><b>★${s.total}</b> · ${q.done}/${TURNS}턴</div></button>`;
+  }).join('');
+  renderBoard(); renderMarket(); renderAction(); renderSupply();
+  $('log').innerHTML=G.log.map(l=>`<div>${esc(l)}</div>`).join('')||'<div style="font-weight:400;color:var(--sub)">아직 기록이 없습니다.</div>';
+}
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function renderBoard(){
+  const pi=UI.view, p=G.players[pi], sym=BOARDS[p.board];
+  const canTap=isHumanTurn()&&G.phase==='place'&&pi===G.cur&&!busy;
+  const ch=(pi===G.cur&&!p.ai)?curChoice():null;
+  const gsel=new Set(); if(ch) ch.list.forEach(gp=>gp.cells.forEach(x=>gsel.add(x)));
+  let h='';
+  for(let i=0;i<25;i++){
+    const r=(i/5)|0, c=i%5, st=`left:${c*20}%;top:${r*20}%`;
+    if(i===CENTER){ h+=`<div class="cell" style="${st}"><div class="face logo"><span>Superlinks</span></div></div>`; continue; }
+    let cls='cell', inner=`<div class="face"><span class="sym" title="${SYMS[sym[i]][1]}">${SYMS[sym[i]][0]}</span></div>`;
+    if(p.c[i]>=0){
+      const last=G.last&&G.last.p===pi&&G.last.cells.includes(i);
+      const pop=UI.popCells.includes(i)&&G.last&&G.last.p===pi;
+      inner+=cardHTML({c:p.c[i],v:p.v[i]},(last?'last ':'')+(pop?'pop':''));
+    } else {
+      const k=(UI.pv&&pi===G.cur)?UI.pv.cells.indexOf(i):-1;
+      if(k>=0){ inner+=cardHTML(UI.pv.cards[k],'pv'); cls+=' pvc'; }
+      if(canTap) cls+=' tap';
+    }
+    if(gsel.has(i)) cls+=' gsel';
+    h+=`<div class="${cls}" data-cell="${i}" style="${st}">${inner}</div>`;
+  }
+  if(ch) for(const gp of ch.list){
+    for(const [a,b] of edgesFor(gp.cells)){
+      const ra=(a/5)|0, ca=a%5, rb=(b/5)|0, cb=b%5;
+      h+=`<div class="lnk pvl" style="left:${((ca+cb)/2+0.5)*20}%;top:${((ra+rb)/2+0.5)*20}%">${STAR}</div>`;
+    }
+  }
+  for(const gp of p.groups) for(const [a,b] of gp.edges){
+    const ra=(a/5)|0, ca=a%5, rb=(b/5)|0, cb=b%5;
+    const key=pi+':'+a+'-'+b;
+    h+=`<div class="lnk ${UI.newEdges.has(key)?'new':''}" style="left:${((ca+cb)/2+0.5)*20}%;top:${((ra+rb)/2+0.5)*20}%">${STAR}</div>`;
+  }
+  $('boardwrap').innerHTML=`<div class="board">${h}</div>`;
+}
+
+function renderMarket(){
+  const can=isHumanTurn()&&G.phase==='draw'&&!busy;
+  const sel=UI.sel;
+  let h=`<div class="mlabel">공개 카드</div><div class="market">`;
+  for(let i=0;i<3;i++){
+    const cd=G.faceUp[i];
+    h+=`<button class="slot ${sel.face.includes(i)?'sel':''} ${can&&cd?'':'dis'}" data-act="face" data-i="${i}">${cd?cardHTML(cd):''}</button>`;
+  }
+  h+=`<div class="mdiv"></div><button class="slot ${sel.deck?'sel':''} ${can?'':'dis'}" data-act="deck">${G.deck.length?backHTML():''}<div class="deckcnt">덱 ${G.deck.length}장</div></button></div><div style="height:20px"></div>`;
+  $('market').innerHTML=h;
+}
+
+function setPreview(cells,cards){
+  const B=cloneB(me());
+  B.c[cells[0]]=cards[0].c; B.v[cells[0]]=cards[0].v; B.c[cells[1]]=cards[1].c; B.v[cells[1]]=cards[1].v;
+  UI.pv={cells,cards,gopts:allGroupings(B,cells),gi:0};
+}
+function curChoice(){ return UI.pv&&UI.pv.gopts?UI.pv.gopts[UI.pv.gi]:undefined; }
+function shapeName(cells){
+  if(cells.length<3) return '';
+  if(isSquare(cells)) return '정사각형';
+  const rs=cells.map(i=>(i/5)|0), cs=cells.map(i=>i%5);
+  const h=Math.max(...rs)-Math.min(...rs)+1, w=Math.max(...cs)-Math.min(...cs)+1;
+  if(h===1||w===1) return '일자형';
+  if(cells.length===3) return 'ㄱ자형';
+  const set=new Set(cells);
+  if(cells.some(x=>NB[x].filter(y=>set.has(y)).length===3)) return 'T자형';
+  const lines=h>w?cs:rs, cnt={}; lines.forEach(x=>cnt[x]=(cnt[x]||0)+1);
+  return Math.max(...Object.values(cnt))===3?'ㄱ자형':'ㄹ자형';
+}
+function groupLabel(gp){ const sh=shapeName(gp.cells); return `숫자 ${gp.val} ${gp.cells.length}장${sh?' ('+sh+')':''}`; }
+function selValid(){ const s=UI.sel; return (s.face.length===2&&!s.deck)||(s.face.length===1&&s.deck); }
+
+function describe(r){
+  const parts=[];
+  r.gr.list.forEach(gp=>parts.push(`숫자 ${gp.val} ${gp.cells.length}장 그룹${gp.stars===4?' (정사각형)':''} <b>★${gp.stars}</b>`));
+  r.gains.forEach(x=>parts.push(`${COLORS[x.col].icon} ${COLORS[x.col].name} 색 영역 토큰 <b>★${x.val}</b>`));
+  return parts;
+}
+
+function renderAction(){
+  const el=$('action'); const p=G.players[G.cur];
+  if(G.over){
+    el.innerHTML=`<div class="ptitle">게임 종료</div><p class="inst">모든 플레이어가 12번씩 카드를 놓았습니다.</p>
+      <div class="btns"><button class="btn" data-act="result">결과 보기</button><button class="btn ghost" data-act="setup">새 게임</button></div>`;
+    return;
+  }
+  if(p.ai){
+    let h=`<div class="ptitle">${esc(p.name)} 차례</div>`;
+    if(G.hand.length) h+=`<div class="hand">${G.hand.map(cd=>`<div class="slot" style="border:0">${cardHTML(cd)}</div>`).join('')}</div>`;
+    h+=`<div class="thinking"><div class="spin"></div>${G.phase==='draw'?'가져올 카드를 고르는 중…':'놓을 자리를 고르는 중…'}</div>`;
+    el.innerHTML=h; return;
+  }
+  if(G.phase==='draw'){
+    el.innerHTML=`<div class="ptitle">내 차례 · 1. 카드 가져오기</div>
+      <p class="inst"><b>공개 카드 2장</b>, 또는 <b>공개 카드 1장 + 덱 1장</b>을 고르세요.<br><span class="note">두 장은 동시에 가져옵니다. 덱 카드는 가져온 뒤에 공개됩니다.</span></p>
+      <div class="btns"><button class="btn" data-act="take" ${selValid()&&!busy?'':'disabled'}>가져오기</button>
+      ${UI.sel.face.length||UI.sel.deck?'<button class="btn ghost" data-act="clearsel">선택 취소</button>':''}</div>`;
+    return;
+  }
+  // place
+  let h=`<div class="ptitle">내 차례 · 2. 카드 놓기</div>
+    <div class="hand">${G.hand.map(cd=>`<div class="slot" style="border:0">${cardHTML(cd)}</div>`).join('')}</div>`;
+  if(!UI.pv){
+    h+=`<p class="inst">보드에서 빈 칸을 누르세요. 같은 그림의 <b>두 칸에 한 장씩</b> 놓입니다.</p>`;
+  } else {
+    const B=cloneB(me()); const avail=G.supply.map(arr=>arr.filter(t=>t.owner<0).map(t=>t.val));
+    const r=simulateTurn(B,[[UI.pv.cells[0],UI.pv.cards[0]],[UI.pv.cells[1],UI.pv.cards[1]]],avail,curChoice());
+    const parts=describe(r);
+    const sym=SYMS[BOARDS[me().board][UI.pv.cells[0]]];
+    h+=`<p class="inst">${sym[0]} ${sym[1]} 칸에 놓습니다. 같은 칸을 다시 누르거나 <b>자리 바꾸기</b>로 두 카드의 위치를 바꿀 수 있어요.</p>`;
+    const go=UI.pv.gopts;
+    if(go.length>1){
+      h+=`<div class="glabel">숫자 그룹 조합 선택 (${go.length}가지) — 보드의 주황 테두리 카드가 연결됩니다</div><div class="gopts">`+
+        go.map((o,k)=>`<button class="gopt ${k===UI.pv.gi?'on':''}" data-act="gopt" data-i="${k}"><span class="rd"></span>
+          <span>조합 ${k+1}: ${o.list.map(groupLabel).join(' + ')}</span><span class="gs">★${o.stars}</span></button>`).join('')+`</div>`;
+    }
+    h+=`<div class="est">${parts.length?'이 배치로 얻는 별: <b>★'+r.gain+'</b><br>'+parts.join('<br>'):'이 배치로 바로 얻는 별은 없습니다.'}</div>
+      <div class="btns"><button class="btn orange" data-act="confirm" ${busy?'disabled':''}>배치 확정</button>
+      <button class="btn ghost" data-act="swap">자리 바꾸기</button><button class="btn ghost" data-act="unpv">다른 칸</button></div>`;
+  }
+  el.innerHTML=h;
+}
+
+function renderSupply(){
+  let h=`<div class="supply">`;
+  for(let k=0;k<4;k++){
+    h+=`<div class="scol">`;
+    G.supply[k].forEach(t=>{
+      h+=`<div class="tok ${t.owner>=0?'taken':''}" style="--cc:${COLORS[k].bg}">${'★'.repeat(t.val)}${t.owner>=0?`<span class="ow">${esc(G.players[t.owner].name)}</span>`:''}</div>`;
+    });
+    h+=`<div class="scname">${COLORS[k].icon} ${COLORS[k].name}</div></div>`;
+  }
+  h+=`</div>`;
+  const areas=G.players.map(q=>largestArea(q));
+  h+=`<div class="endtok">같은 색 5장 이상이 이어지면 그 색의 남은 토큰 중 높은 것을 받습니다 (색마다 1개).<br>
+    가장 큰 색 영역 (게임 종료 시 ★3): ${G.players.map((q,i)=>`${esc(q.name)} <b>${areas[i]}칸</b>`).join(' · ')}</div>`;
+  $('supply').innerHTML=h;
+}
+
+function toast(html,ms=1900){
+  const d=document.createElement('div'); d.className='toast'; d.innerHTML=html;
+  $('toasts').appendChild(d); setTimeout(()=>d.remove(),ms*(SPEED[OPTS.speed]||1)+300);
+}
+function announce(pi,r){
+  const who=G.players[pi].ai?esc(G.players[pi].name)+' · ':'';
+  r.gr.list.forEach(gp=>toast(`${who}숫자 ${gp.val} 그룹${gp.stars===4?' (정사각형)':''} <span class="st">${'★'.repeat(gp.stars)}</span>`));
+  r.gains.forEach(x=>toast(`${who}${COLORS[x.col].icon} ${COLORS[x.col].name} 색 영역 <span class="st">${'★'.repeat(x.val)}</span>`));
+}
+function markNew(pi,r,cells){
+  UI.popCells=cells; UI.newEdges=new Set();
+  r.gr.list.forEach(gp=>edgesFor(gp.cells).forEach(([a,b])=>UI.newEdges.add(pi+':'+a+'-'+b)));
+}
+
+/* ---------- 진행 ---------- */
+function nextTurn(){
+  refill(G);
+  UI.sel={face:[],deck:false}; UI.pv=null;
+  if(G.players.every(p=>p.done>=TURNS)){
+    finishGame(G); save(); UI.view=0; render(); setTimeout(showResult,600); return;
+  }
+  G.cur=(G.cur+1)%G.players.length; G.phase='draw';
+  save();
+  if(!G.players[G.cur].ai) UI.view=G.cur;
+  render();
+  if(G.players[G.cur].ai) runAI();
+}
+async function runAI(){
+  const run=RUN, pi=G.cur, p=G.players[pi], lv=LEVELS[p.level];
+  busy=true; UI.view=pi; UI.popCells=[]; UI.newEdges=new Set(); render();
+  await wait(550); if(run!==RUN) return;
+  const ch=aiChooseDraw(G,pi);
+  UI.sel={face:ch.face,deck:ch.deck}; render();
+  await wait(800); if(run!==RUN) return;
+  const cards=takeCards(G,UI.sel);
+  addLog(G,`${p.name}: ${ch.deck?`공개 카드 ${cardName(cards[0])} + 덱 1장(${cardName(cards[1])})`:`공개 카드 ${cardName(cards[0])}·${cardName(cards[1])}`} 가져옴`);
+  UI.sel={face:[],deck:false}; render();
+  await wait(700); if(run!==RUN) return;
+  const ctx=makeCtx(G,pi);
+  const pl=bestPlacement(p,cards,ctx,lv.potW,lv.noise);
+  UI.pv={cells:[pl.i,pl.j],cards:[pl.a,pl.b]}; render();
+  await wait(900); if(run!==RUN) return;
+  UI.pv=null;
+  const r=commit(G,pi,pl.i,pl.a,pl.j,pl.b);
+  markNew(pi,r,[pl.i,pl.j]); render(); announce(pi,r);
+  await wait(r.gain?1300:800); if(run!==RUN) return;
+  busy=false; UI.popCells=[]; UI.newEdges=new Set();
+  nextTurn();
+}
+
+/* ---------- 입력 ---------- */
+document.addEventListener('click',e=>{
+  const cell=e.target.closest('[data-cell]');
+  if(cell&&G){ onCell(+cell.dataset.cell); return; }
+  const b=e.target.closest('[data-act]'); if(!b) return;
+  const act=b.dataset.act;
+  switch(act){
+    case 'rules': showRules(); break;
+    case 'setup': showSetup(); break;
+    case 'view': UI.view=+b.dataset.i; render(); break;
+    case 'face': if(!isHumanTurn()||G.phase!=='draw'||busy) return;
+      { const i=+b.dataset.i; if(!G.faceUp[i]) return; const s=UI.sel;
+        if(s.face.includes(i)) s.face=s.face.filter(x=>x!==i);
+        else { if(s.face.length+(s.deck?1:0)>=2){ if(s.deck) s.deck=false; else s.face.shift(); } s.face.push(i); }
+        render(); } break;
+    case 'deck': if(!isHumanTurn()||G.phase!=='draw'||busy||!G.deck.length) return;
+      { const s=UI.sel; if(s.deck) s.deck=false; else { s.deck=true; while(s.face.length>1) s.face.shift(); } render(); } break;
+    case 'clearsel': UI.sel={face:[],deck:false}; render(); break;
+    case 'take': if(!isHumanTurn()||!selValid()||busy) return;
+      { const cards=takeCards(G,UI.sel);
+        addLog(G,`${me().name}: ${UI.sel.deck?`공개 카드 ${cardName(cards[0])} + 덱 1장(${cardName(cards[1])})`:`공개 카드 ${cardName(cards[0])}·${cardName(cards[1])}`} 가져옴`);
+        UI.sel={face:[],deck:false}; UI.view=G.cur; UI.popCells=[]; UI.newEdges=new Set(); save(); render(); } break;
+    case 'swap': if(UI.pv){ setPreview(UI.pv.cells,UI.pv.cards.slice().reverse()); render(); } break;
+    case 'gopt': if(UI.pv){ UI.pv.gi=+b.dataset.i; render(); } break;
+    case 'unpv': UI.pv=null; render(); break;
+    case 'confirm': confirmPlace(); break;
+    case 'result': showResult(); break;
+    case 'close': closeModal(); break;
+  }
+});
+function onCell(i){
+  if(!isHumanTurn()||G.phase!=='place'||busy||UI.view!==G.cur) return;
+  const p=me(); if(i===CENTER||p.c[i]>=0) return;
+  const j=PARTNER[p.board][i];
+  if(UI.pv&&UI.pv.cells.includes(i)) setPreview(UI.pv.cells,UI.pv.cards.slice().reverse());
+  else setPreview([i,j],[G.hand[0],G.hand[1]]);
+  render();
+}
+async function confirmPlace(){
+  if(!UI.pv||busy) return;
+  busy=true; const run=RUN;
+  const [a,b]=UI.pv.cells, [ca,cb]=UI.pv.cards, choice=curChoice(); UI.pv=null;
+  const r=commit(G,G.cur,a,ca,b,cb,choice);
+  markNew(G.cur,r,[a,b]); render(); announce(G.cur,r);
+  await wait(r.gain?1100:500); if(run!==RUN) return;
+  busy=false; UI.popCells=[]; UI.newEdges=new Set();
+  nextTurn();
+}
+
+/* ---------- 모달 ---------- */
+function openModal(html){ $('modal').innerHTML=`<div class="modal"><div class="mbox">${html}</div></div>`; }
+function closeModal(){ $('modal').innerHTML=''; }
+function showSetup(){
+  const sv=loadSave();
+  const seg=(key,vals)=>`<div class="seg">${vals.map(([v,l])=>`<button data-set="${key}" data-v="${v}" class="${String(OPTS[key])===String(v)?'on':''}">${l}</button>`).join('')}</div>`;
+  openModal(`<div class="hero"><div class="logo-t">Superlinks</div><div class="sub-t">슈퍼링크스 AI 대전</div></div>
+    ${sv&&!sv.over?`<div class="field"><button class="btn" style="width:100%" data-sact="resume">이어하기 (${esc(sv.players[sv.cur].name)} 차례 · ${sv.players[sv.cur].done+1}/${TURNS}턴)</button></div>`:''}
+    <div class="field"><label>인원</label>${seg('n',[[2,'2인 (AI 1)'],[3,'3인 (AI 2)'],[4,'4인 (AI 3)']])}</div>
+    <div class="field"><label>AI 난이도</label>${seg('level',[['easy','쉬움'],['normal','보통'],['hard','어려움']])}</div>
+    <div class="field"><label>진행 속도</label>${seg('speed',[['slow','느리게'],['normal','보통'],['fast','빠르게']])}</div>
+    <div class="field"><label>내 이름</label><input id="nm" maxlength="10" value="${esc(OPTS.name)}"></div>
+    <div class="btns" style="margin-top:6px"><button class="btn orange" style="flex:1" data-sact="start">새 게임 시작</button>
+    ${G?'<button class="btn ghost" data-act="close">닫기</button>':''}<button class="btn ghost" data-act="rules">규칙</button></div>
+    <p class="note" style="margin-top:12px">보드는 A~D 중 무작위로 나눠 받고, 시작 플레이어도 무작위로 정해집니다. 진행 중인 게임은 자동 저장됩니다.</p>`);
+  const box=$('modal');
+  box.onclick=e=>{
+    const s=e.target.closest('[data-set]');
+    if(s){ const k=s.dataset.set; OPTS[k]=k==='n'?+s.dataset.v:s.dataset.v; saveOpts();
+      s.parentNode.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===s)); return; }
+    const a=e.target.closest('[data-sact]'); if(!a) return;
+    if(a.dataset.sact==='start'){ OPTS.name=($('nm').value||'나').trim()||'나'; saveOpts(); startGame(); }
+    if(a.dataset.sact==='resume'){ resumeGame(sv); }
+  };
+}
+function startGame(){
+  RUN++; busy=false;
+  G=newGameState(OPTS);
+  UI={view:0,sel:{face:[],deck:false},pv:null,popCells:[],newEdges:new Set()};
+  addLog(G,`새 게임 — ${G.players.map(p=>`${p.name}(보드 ${p.board})`).join(', ')} · 시작: ${G.players[G.cur].name}`);
+  closeModal(); save(); render();
+  if(G.players[G.cur].ai) runAI();
+}
+function resumeGame(sv){
+  RUN++; busy=false; G=sv;
+  UI={view:G.players[G.cur].ai?G.cur:0,sel:{face:[],deck:false},pv:null,popCells:[],newEdges:new Set()};
+  if(G.players[G.cur].ai&&G.phase!=='draw'){ G.phase='draw'; }
+  closeModal(); render();
+  if(G.players[G.cur].ai) runAI();
+}
+function showRules(){
+  openModal(`<h2>슈퍼링크스 규칙 요약</h2><p class="note">2–4인 · 20분 · 8세 이상 · 디자이너 Hope S. Hwang</p>
+  <h3>목표</h3><p>같은 숫자의 카드를 이어 <b>숫자 그룹</b>을 만들고, 같은 색 카드를 모아 <b>색 영역</b>을 넓혀 별(★)을 가장 많이 모으세요.<br>
+  제약은 하나뿐! <b>두 장의 카드는 항상 보드의 같은 그림 두 칸에 놓아야 합니다.</b></p>
+  <h3>구성</h3><ul><li>카드 108장: 4색(분홍·보라·파랑·노랑) × 숫자 2·3·4 (색·숫자마다 9장)</li>
+  <li>개인 보드 4장(A~D): 가운데를 뺀 24칸, 그림 12종이 두 칸씩</li><li>색 영역 토큰 8개(색마다 ★★ 1개, ★ 1개), 게임 종료 토큰 4개(★★★)</li></ul>
+  <h3>차례 진행</h3><ol>
+  <li><b>카드 2장 동시에 가져오기</b> — 공개 카드 2장, 또는 공개 카드 1장 + 덱 1장. 첫 장을 확인하고 두 번째를 고를 수는 없습니다.</li>
+  <li><b>같은 그림 두 칸에 놓기</b> — 가져온 두 장을 보드에서 그림이 같은 두 칸에 한 장씩 놓습니다.</li>
+  <li><b>숫자 그룹 만들기</b> — 상하좌우로 이어진 같은 숫자 카드: 2 두 장 ★1 / 3 세 장 ★2 / 4 네 장 ★3, 4 네 장이 정사각형이면 ★4. 색은 상관없습니다.
+    <ul><li>카드 한 장은 한 그룹에만 속합니다.</li><li>새 그룹에는 이번 차례에 놓은 카드가 1장 이상 있어야 합니다.</li><li>이미 만든 그룹은 늘릴 수 없습니다. 옆에 같은 숫자를 놓아도 바로 효과는 없지만, 나중에 새 그룹을 만드는 데 쓰일 수 있습니다.</li></ul></li>
+  <li><b>색 영역 만들기</b> — 같은 색 카드가 5장 이상 이어지면 그 색의 남은 색 영역 토큰 중 높은 것(★★ 다음 ★)을 받습니다. 색마다 1개만 받을 수 있고, 남은 토큰이 없으면 보너스가 없습니다.</li>
+  <li><b>차례 끝</b> — 공개 카드를 3장으로 채웁니다.</li></ol>
+  <h3>게임 종료와 점수</h3><p>각자 12번(카드 24장)씩 놓으면 끝납니다. <b>가장 큰 색 영역</b>을 가진 플레이어가 게임 종료 토큰 ★★★을 받습니다(동점이면 모두).<br>
+  최종 점수 = 보드의 별 + 색 영역 토큰 + 게임 종료 토큰. 동점이면 가장 큰 색 영역 → 두 번째로 큰 색 영역 … 순으로 비교하고, 그래도 같으면 공동 승리입니다.</p>
+  <h3>색약 배려 기호</h3><p>🌸 분홍(꽃) · 🍇 보라(포도) · 💧 파랑(물방울) · 🌙 노랑(달)</p>
+  <h3>앱 안내</h3><p class="note">숫자 그룹을 만들 수 있는 조합이 여러 가지면 배치할 때 직접 고를 수 있습니다(기본값은 별이 가장 많은 조합). 배치 확정 전에 예상 점수를 확인할 수 있어요. 상단 탭을 누르면 다른 플레이어의 보드를 볼 수 있습니다.</p>
+  <div class="btns" style="margin-top:14px"><button class="btn" data-act="${G?'close':'setup'}">${G?'닫기':'게임 설정'}</button></div>`);
+}
+function showResult(){
+  if(!G||!G.result) return;
+  const rows=G.result;
+  const w=rows.filter(r=>r.rank===1).map(r=>esc(G.players[r.i].name));
+  openModal(`<h2>${w.length>1?'공동 승리':'승리'}: ${w.join(', ')} 🎉</h2>
+    <table class="res"><tr><th>순위</th><th style="text-align:left">플레이어</th><th>숫자 그룹</th><th>색 영역</th><th>종료 보너스</th><th>합계</th></tr>
+    ${rows.map(r=>{const p=G.players[r.i];return `<tr class="${r.rank===1?'win':''}"><td>${r.rank}</td><td class="nm">${esc(p.name)}</td><td>★${r.gs}</td><td>★${r.as}</td><td>${r.es?'★'+r.es:'-'}</td><td class="tot">★${r.total}</td></tr>`;}).join('')}
+    </table>
+    <p class="note">색 영역 크기(큰 순): ${rows.map(r=>`${esc(G.players[r.i].name)} ${r.areas.slice(0,3).join('·')}`).join(' / ')}</p>
+    <div class="btns" style="margin-top:12px"><button class="btn orange" data-act="setup">새 게임</button><button class="btn ghost" data-act="close">보드 보기</button></div>`);
+}
+
+/* ---------- 시작 ---------- */
+showSetup();
+})();
+</script>
+</body>
+</html>
