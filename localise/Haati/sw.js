@@ -1,5 +1,5 @@
 // 오프라인 캐시 (새 버전을 올리면 VERSION 숫자를 올려 주세요)
-const VERSION = 'haati-v1';
+const VERSION = 'haati-v2';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
